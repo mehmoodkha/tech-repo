@@ -1,0 +1,337 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    /* Admin Theme Override */
+    body {
+        background-color: #0a0e27 !important;
+    }
+    .admin-card {
+        background: linear-gradient(135deg, #1a1f3a 0%, #0f1429 100%);
+        border: 1px solid #2d3a5f !important;
+    }
+    .admin-card-header {
+        background: linear-gradient(90deg, #2d3a5f 0%, #1a2847 100%);
+        border-bottom: 2px solid #ffc107 !important;
+    }
+    .admin-badge {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: #000;
+        font-weight: 600;
+    }
+    .form-control {
+        background-color: #252d4a !important;
+        border: 1px solid #2d3a5f !important;
+        color: #fff !important;
+    }
+    .form-control:focus {
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+    }
+    /* Game Canvas Styling */
+    #gameCanvas {
+        background-color: #0f1115;
+        border: 2px solid #2d323e;
+        border-radius: 8px;
+        display: none;
+        margin: 0 auto;
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'admin_students' %}" class="btn btn-sm mb-3" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; font-weight: 600;">
+                <i class="bi bi-arrow-left"></i> Back to Students
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-badge fs-4 text-dark"></i>
+                </div>
+                <div>
+                    <h2 class="text-white mb-0">
+                        Managing: {% if student.first_name %}{{ student.first_name }} {{ student.last_name }}{% else %}{{ student.email }}{% endif %}
+                    </h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 admin-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto; font-weight: bold;">
+                            {{ student.first_name|first|default:student.email|first|upper }}
+                        </div>
+                    </div>
+                    <h4 class="text-white mb-1">
+                        {% if student.first_name %}{{ student.first_name }} {{ student.last_name }}{% else %}Student{% endif %}
+                    </h4>
+                    <p class="text-muted mb-3">{{ student.email }}</p>
+                    <div class="alert py-2 small admin-badge">
+                        <i class="bi bi-shield-fill-check"></i> Admin View Mode
+                    </div>
+                </div>
+            </div>
+        </div>      <p class="text-muted mb-3">{{ student.email }}</p>
+                    <div class="alert alert-warning py-2 small">
+                        <i class="bi bi-shield-fill-check"></i> Admin View Mode
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h3 class="text-white mb-4">Enrolled Courses</h3>
+
+            <!-- Fee Management -->
+            <div class="card mb-4 border-0 admin-card">
+                <div class="card-header admin-card-header">
+                    <h5 class="text-white mb-0"><i class="bi bi-credit-card text-warning me-2"></i>Fee Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-white small">Total Fees (₹)</label>
+                            <input type="number" class="form-control" id="totalFees" value="{{ progress.total_fees }}" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-white small">Paid Amount (₹)</label>
+                            <input type="number" class="form-control" id="paidAmount" value="{{ progress.paid_amount }}" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-white small">Remaining</label>
+                            <input type="text" class="form-control" id="remainingAmount" value="₹{{ progress.get_remaining_fees }}" readonly>
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 20px; background-color: #0a0e27;">
+                        <div class="progress-bar" id="feeProgressBar" role="progressbar" style="background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%); width: {{ progress.get_fee_percentage }}%;">
+                            <span class="fw-bold text-dark" id="feeProgressText">{{ progress.get_fee_percentage }}% Paid</span>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button class="btn btn-sm admin-badge" onclick="updateFeeStatus()">
+                            <i class="bi bi-save"></i> Update Fee Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RHCSA/RHCE Topics Tracker -->
+            <div class="card mb-4 border-0 admin-card">
+                <div class="card-header admin-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="text-white mb-0"><i class="bi bi-list-check text-warning me-2"></i>Linux RHCSA/RHCE Topics</h5>
+                    <span class="badge admin-badge" id="topicProgress">{{ progress.get_completed_count }}/30 Complete</span>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 20px; background-color: #0a0e27;">
+                        <div class="progress-bar" id="progressBar" role="progressbar" style="background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%); width: {{ progress.get_completion_percentage }}%;">
+                            <span id="progressText" class="fw-bold text-dark">{{ progress.get_completion_percentage }}%</span>
+                        </div>
+                    </div>
+                    <div class="row" id="topicsList">
+                        <!-- Topics will be dynamically loaded here -->
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-sm admin-badge" onclick="saveProgress()">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if enrollments %}
+                {% for enrollment in enrollments %}
+                <div class="card mb-3 border-0 admin-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title text-white mb-0">{{ enrollment.course.title }}</h5>
+                            
+                            {% if enrollment.payment_status == 'PAID' %}
+                                <span class="badge bg-success">Active / Paid</span>
+                            {% elif enrollment.payment_status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">Payment Pending</span>
+                            {% else %}
+                                <span class="badge bg-danger">Payment Failed</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="text-muted small mb-2">{{ enrollment.course.duration }} • Price: ${{ enrollment.course.price }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-5 rounded admin-card">
+                    <h5 class="text-white">No courses yet</h5>
+                    <p class="text-muted">This student hasn't enrolled in any courses.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const studentId = {{ student.id }};
+    const isAdminView = true;
+    
+    // --- RHCSA/RHCE TOPICS TRACKER ---
+    const rhcsaTopics = [
+        "Understanding and Using Essential Tools",
+        "File System Navigation (cd, ls, pwd)",
+        "File Management (cp, mv, rm, touch)",
+        "File Permissions and Ownership (chmod, chown)",
+        "Text Processing (grep, sed, awk, cut)",
+        "I/O Redirection and Pipes",
+        "Archive and Compress (tar, gzip, bzip2)",
+        "User and Group Management",
+        "Process Management (ps, top, kill)",
+        "Service Management (systemctl)",
+        "Network Configuration (nmcli, ip)",
+        "Firewall Configuration (firewalld)",
+        "SELinux Basics",
+        "File System Management (fdisk, mkfs)",
+        "Logical Volume Management (LVM)",
+        "Mount and Unmount File Systems",
+        "Swap Space Configuration",
+        "Job Scheduling (cron, at)",
+        "Kernel Boot Parameters",
+        "Package Management (yum, dnf, rpm)",
+        "SSH Configuration and Key Management",
+        "System Logging (journalctl, rsyslog)",
+        "Bash Scripting Basics",
+        "Environment Variables",
+        "Shell History and Aliases",
+        "Find Command and Locate",
+        "Software RAID Configuration",
+        "NFS and Autofs",
+        "Container Management (Podman)",
+        "Performance Tuning and Monitoring"
+    ];
+
+    // Load existing progress from server
+    let currentProgress = {{ topics_json|safe }};
+    if (!currentProgress || typeof currentProgress !== 'object') {
+        currentProgress = {};
+    }
+
+    console.log('Loaded progress:', currentProgress); // Debug log
+
+    function loadTopics() {
+        const topicsList = document.getElementById('topicsList');
+        topicsList.innerHTML = ''; // Clear existing
+
+        rhcsaTopics.forEach((topic, index) => {
+            const isChecked = currentProgress[index] || false;
+            const col = document.createElement('div');
+            col.className = 'col-md-6 mb-2';
+            
+            col.innerHTML = `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="topic${index}" 
+                           ${isChecked ? 'checked' : ''} onchange="updateProgress()">
+                    <label class="form-check-label text-white small" for="topic${index}" style="cursor: pointer;">
+                        ${topic}
+                    </label>
+                </div>
+            `;
+            topicsList.appendChild(col);
+        });
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const checkboxes = document.querySelectorAll('#topicsList input[type="checkbox"]');
+        let completed = 0;
+
+        checkboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                completed++;
+                currentProgress[index] = true;
+            } else {
+                currentProgress[index] = false;
+            }
+        });
+
+        const total = rhcsaTopics.length;
+        const percentage = Math.round((completed / total) * 100);
+
+        // Update UI
+        document.getElementById('topicProgress').innerText = `${completed}/${total} Complete`;
+        document.getElementById('progressBar').style.width = percentage + '%';
+        document.getElementById('progressText').innerText = percentage + '%';
+    }
+
+    function saveProgress() {
+        fetch(`/manage/students/${studentId}/update-progress/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                topics_data: currentProgress
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Progress saved successfully!');
+            } else {
+                alert('Error saving progress: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+
+    function updateFeeStatus() {
+        const totalFees = parseFloat(document.getElementById('totalFees').value) || 0;
+        const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+        
+        fetch(`/manage/students/${studentId}/update-progress/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                total_fees: totalFees,
+                paid_amount: paidAmount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const remaining = totalFees - paidAmount;
+                document.getElementById('remainingAmount').value = '₹' + remaining.toFixed(2);
+                document.getElementById('feeProgressBar').style.width = data.fee_percentage + '%';
+                document.getElementById('feeProgressText').innerText = data.fee_percentage + '% Paid';
+                alert('Fee status updated successfully!');
+            } else {
+                alert('Error updating fee status: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Load topics on page load
+    document.addEventListener('DOMContentLoaded', loadTopics);
+</script>
+{% endblock %}

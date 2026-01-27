@@ -1,0 +1,372 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        padding: 6rem 0;
+        background: radial-gradient(circle at top right, #1e2532 0%, #13151a 60%);
+    }
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+    }
+    .hero-highlight {
+        color: var(--secondary-accent);
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+        background-color: #1a1d24;
+        border-top: 1px solid #2d323e;
+        border-bottom: 1px solid #2d323e;
+        padding: 1.5rem 0;
+    }
+    .stat-item h3 { color: white; font-weight: 700; margin: 0; }
+    .stat-item p { color: #8b949e; margin: 0; font-size: 0.9rem; }
+
+    /* Cards */
+    .course-card {
+        background-color: var(--card-bg);
+        border: 1px solid #2d323e;
+        border-radius: 12px;
+        transition: transform 0.3s, border-color 0.3s;
+        height: 100%;
+    }
+    .course-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--secondary-accent);
+    }
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        background: rgba(0, 212, 255, 0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-accent);
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .tech-tag {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #2d323e;
+        color: #b0b3b8;
+        margin-right: 5px;
+    }
+</style>
+
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <div class="rocket-notification-container mb-3">
+    <div class="rocket-wrapper">
+        <svg class="cute-rocket" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="rocketBody" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#0d6efd;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1" />
+                </linearGradient>
+                 <filter id="motionBlur">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1,0" /> </filter>
+            </defs>
+            <path class="rocket-flame" d="M10 32 Q 0 32, 10 36 L 0 38 L 10 40 Q 0 42, 10 42 L 18 37 Z" fill="#ff9900"></path>
+            <path d="M18 24 L 10 18 L 18 32 Z" fill="#1e222b"></path>
+            <path d="M18 50 L 10 56 L 18 42 Z" fill="#1e222b"></path>
+            <path class="rocket-fuselage" d="M15 28 C 15 28, 60 28, 60 37 C 60 46, 15 46, 15 46 L 12 42 L 12 32 Z" fill="url(#rocketBody)"></path>
+            <circle cx="45" cy="37" r="5" fill="#13151a" stroke="#00d4ff" stroke-width="2"></circle>
+        </svg>
+        
+        <span class="rocket-text ps-2">New: DevOps 2025 Refresher Course launching!</span>
+    </div>
+</div>
+
+<style>
+    /* Container for the whole animation area */
+    .rocket-notification-container {
+        position: relative;
+        height: 50px; /* Fixed height to contain animation */
+        width: fit-content;
+        overflow: visible; /* Allow it to fly "out" */
+        display: flex;
+        align-items: center;
+        /* Optional: Add a subtle background track */
+        background: linear-gradient(to right, rgba(0, 212, 255, 0.05), transparent);
+        border-radius: 30px;
+        padding-right: 20px;
+    }
+
+    /* The wrapper that actually moves across the screen */
+    .rocket-wrapper {
+        display: flex;
+        align-items: center;
+        position: relative;
+        animation: flightPath 6s ease-in-out infinite;
+    }
+
+    .cute-rocket {
+        width: 40px;
+        height: 40px;
+        /* Tilt it slightly upwards */
+        transform: rotate(-10deg);
+    }
+
+    /* The text following the rocket */
+    .rocket-text {
+        color: var(--secondary-accent);
+        font-weight: 600;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        opacity: 0; /* Hidden initially */
+        animation: textFadeIn 6s ease-in-out infinite;
+    }
+
+    /* Flickering flame animation */
+    .rocket-flame {
+        transform-origin: center right;
+        animation: flameFlicker 0.2s infinite alternate;
+    }
+
+    /* --- Animations --- */
+
+    /* The main flight across the screen */
+    @keyframes flightPath {
+        0% {
+            transform: translateX(-100px) scale(0.8);
+            filter: blur(3px); /* Heavy blur on entry */
+            opacity: 0;
+        }
+        20% {
+            /* Arrives and slows down */
+            transform: translateX(10px) scale(1);
+            filter: blur(0px); /* Sharp when slow */
+            opacity: 1;
+        }
+        70% {
+            /* Hovers slowly forward */
+            transform: translateX(30px) scale(1) translateY(-2px);
+             filter: blur(0px);
+             opacity: 1;
+        }
+        100% {
+            /* Zooms out fast */
+            transform: translateX(300px) scale(1.2);
+            filter: blur(4px); /* Heavy motion blur on exit */
+            opacity: 0;
+        }
+    }
+
+    /* Makes the text appear only when the rocket slows down */
+    @keyframes textFadeIn {
+        0%, 15% { opacity: 0; }
+        25%, 75% { opacity: 1; }
+        90%, 100% { opacity: 0; }
+    }
+
+    /* Simple flame flicker */
+    @keyframes flameFlicker {
+        0% { transform: scaleX(1); opacity: 1; }
+        100% { transform: scaleX(0.8) translateY(1px); opacity: 0.7; }
+    }
+</style>
+                <h1 class="hero-title text-white">
+                    Master DevOps with <br>
+                    <span class="hero-highlight">TechGenX with Asfiya</span>
+                </h1>
+                <p class="lead text-secondary mb-4" style="max-width: 600px;">
+                    Stop watching video lectures. Start deploying real infrastructure. 
+                    Learn Docker, Kubernetes, Ansible, and Terraform in live environments directly in your browser.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'register' %}" class="btn btn-brand btn-lg px-4">Start Learning Now</a>
+                    <a href="#" class="btn btn-outline-light btn-lg px-4">View Learning Paths</a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-end">
+                 <div class="p-4 rounded-4" style="background: linear-gradient(135deg, #2b303b 0%, #1e222b 100%); border: 1px solid #3e4451;">
+                    <div class="text-start font-monospace text-info mb-2">$ kubectl get pods</div>
+                    <div class="text-start font-monospace text-white">NAME &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; READY &nbsp;&nbsp; STATUS &nbsp;&nbsp; RESTARTS</div>
+                    <div class="text-start font-monospace text-success">nginx-deploy &nbsp; 1/1 &nbsp;&nbsp;&nbsp; Running &nbsp; 0</div>
+                    <div class="text-start font-monospace text-success">api-gateway &nbsp;&nbsp; 1/1 &nbsp;&nbsp;&nbsp; Running &nbsp; 0</div>
+                    <div class="text-start font-monospace text-secondary mt-2">...</div>
+                    <div class="mt-3 text-center">
+                        <button class="btn btn-sm btn-primary opacity-75">Launch Terminal</button>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4" style="background-color: #1a1d24; border-top: 1px solid #2d323e; border-bottom: 1px solid #2d323e;">
+    <div class="container">
+        <p class="text-center text-muted text-uppercase fw-bold small mb-3" style="letter-spacing: 2px;">Technologies You Will Master</p>
+        
+        <div class="ticker-box">
+            <div class="ticker-wrap">
+                <div class="ticker-track">
+                    <div class="ticker-item"><i class="bi bi-box-seam text-primary"></i> Docker</div>
+                    <div class="ticker-item"><i class="bi bi-diagram-3 text-info"></i> Kubernetes</div>
+                    <div class="ticker-item"><i class="bi bi-amazon text-warning"></i> AWS</div>
+                    <div class="ticker-item"><i class="bi bi-git text-danger"></i> Git</div>
+                    <div class="ticker-item"><i class="bi bi-terminal text-success"></i> Linux</div>
+                    <div class="ticker-item"><i class="bi bi-filetype-py text-warning"></i> Python</div>
+                    <div class="ticker-item"><i class="bi bi-robot text-secondary"></i> Jenkins</div>
+                    <div class="ticker-item"><i class="bi bi-bricks text-danger"></i> Ansible</div>
+                    <div class="ticker-item"><i class="bi bi-layers text-primary"></i> Terraform</div>
+                    
+                    <div class="ticker-item"><i class="bi bi-box-seam text-primary"></i> Docker</div>
+                    <div class="ticker-item"><i class="bi bi-diagram-3 text-info"></i> Kubernetes</div>
+                    <div class="ticker-item"><i class="bi bi-amazon text-warning"></i> AWS</div>
+                    <div class="ticker-item"><i class="bi bi-git text-danger"></i> Git</div>
+                    <div class="ticker-item"><i class="bi bi-terminal text-success"></i> Linux</div>
+                    <div class="ticker-item"><i class="bi bi-filetype-py text-warning"></i> Python</div>
+                    <div class="ticker-item"><i class="bi bi-robot text-secondary"></i> Jenkins</div>
+                    <div class="ticker-item"><i class="bi bi-bricks text-danger"></i> Ansible</div>
+                    <div class="ticker-item"><i class="bi bi-layers text-primary"></i> Terraform</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* The Box that holds the ticker */
+    .ticker-box {
+        border: 2px solid #2d323e;  /* The Border you asked for */
+        border-radius: 10px;        /* Rounded corners */
+        background-color: #0f1115;  /* Darker background inside box */
+        overflow: hidden;           /* Cuts off anything outside the border */
+        position: relative;
+        
+        /* The "Fade" effect on left and right */
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); } 
+    }
+
+    .ticker-wrap {
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 15px 0; /* Space inside the box */
+    }
+
+    .ticker-track {
+        display: flex;
+        width: fit-content;
+        animation: scroll 30s linear infinite;
+    }
+
+    .ticker-item {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #8b949e;
+        padding: 0 3rem; 
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .ticker-item i {
+        font-size: 1.4rem;
+    }
+    
+    .ticker-track:hover {
+        animation-play-state: paused;
+    }
+</style>
+
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="text-white fw-bold">Popular Learning Paths</h2>
+                <p class="text-muted mb-0">Structured roadmaps to take you from beginner to expert.</p>
+            </div>
+            <a href="#" class="text-decoration-none text-info">View all paths <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="course-card p-4">
+                    <div class="icon-box">
+                        <i class="bi bi-hdd-network"></i>
+                    </div>
+                    <h4 class="text-white mb-2">DevOps Pre-Requisite</h4>
+                    <p class="text-muted small mb-3">Master the basics of Linux, Networking, and Git before diving into complex tools.</p>
+                    <div class="mb-4">
+                        <span class="tech-tag">Linux</span>
+                        <span class="tech-tag">Git</span>
+                        <span class="tech-tag">Bash</span>
+                    </div>
+                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="course-card p-4">
+                    <div class="icon-box" style="color: #3771e0; background: rgba(55, 113, 224, 0.1);">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h4 class="text-white mb-2">Docker for Beginners</h4>
+                    <p class="text-muted small mb-3">Learn how to build, ship, and run applications using containers.</p>
+                    <div class="mb-4">
+                        <span class="tech-tag">Containers</span>
+                        <span class="tech-tag">Images</span>
+                    </div>
+                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="course-card p-4">
+                    <div class="icon-box" style="color: #326ce5; background: rgba(50, 108, 229, 0.1);">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h4 class="text-white mb-2">Kubernetes Administrator</h4>
+                    <p class="text-muted small mb-3">Prepare for the CKA exam with deep dives into architecture and troubleshooting.</p>
+                    <div class="mb-4">
+                        <span class="tech-tag">K8s</span>
+                        <span class="tech-tag">Cluster</span>
+                    </div>
+                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-darker" style="background-color: #16191f;">
+    <div class="container text-center">
+        <h2 class="text-white mb-5">Why learn with us?</h2>
+        <div class="row g-5">
+            <div class="col-md-4">
+                <i class="bi bi-terminal-fill fs-1 text-info mb-3"></i>
+                <h5 class="text-white">Browser-Based Labs</h5>
+                <p class="text-muted">No installations required. Access real environments instantly from your browser.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="bi bi-trophy-fill fs-1 text-warning mb-3"></i>
+                <h5 class="text-white">Gamified Learning</h5>
+                <p class="text-muted">Earn points, badges, and certificates as you complete challenges.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="bi bi-people-fill fs-1 text-success mb-3"></i>
+                <h5 class="text-white">Active Community</h5>
+                <p class="text-muted">Join thousands of engineers helping each other debug and learn.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
