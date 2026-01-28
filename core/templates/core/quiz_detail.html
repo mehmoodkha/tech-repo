@@ -1,0 +1,393 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    .quiz-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .quiz-header-box {
+        background: linear-gradient(135deg, #1e222b 0%, #2a2f3a 100%);
+        border: 1px solid #2d323e;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .question-card {
+        background: linear-gradient(135deg, #1e222b 0%, #2a2f3a 100%);
+        border: 2px solid #2d323e;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .question-card.current {
+        border-color: #00d4ff;
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    
+    .answer-section {
+        background: rgba(13, 110, 253, 0.1);
+        border-left: 4px solid #0d6efd;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    
+    .choice-option {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid #2d323e;
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+    
+    .choice-option:hover {
+        border-color: #00d4ff;
+        background: rgba(0, 212, 255, 0.1);
+        transform: translateX(5px);
+    }
+    
+    .choice-option.selected {
+        border-color: #0d6efd;
+        background: rgba(13, 110, 253, 0.2);
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+    }
+    
+    .choice-label {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #2d323e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .choice-option.selected .choice-label {
+        background: #0d6efd;
+        color: white;
+    }
+    
+    .choice-text {
+        flex: 1;
+        color: white;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .progress-indicator {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .progress-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #2d323e;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .progress-dot.current {
+        background-color: #00d4ff;
+        transform: scale(1.5);
+    }
+    
+    .progress-dot.viewed {
+        background-color: #0d6efd;
+    }
+    
+    .timer {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #00d4ff;
+    }
+    
+    .previous-attempts {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: rgba(13, 110, 253, 0.1);
+        border-radius: 12px;
+    }
+    
+    .attempt-item {
+        padding: 0.8rem;
+        margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+
+<div class="container-fluid quiz-container mt-4">
+    <div class="quiz-header-box">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h2 class="text-white mb-2">
+                    <i class="bi bi-lightbulb-fill text-warning me-2"></i>
+                    {{ quiz.title }}
+                </h2>
+                <div class="badge bg-primary">{{ quiz.get_topic_display }}</div>
+                <div class="badge bg-secondary ms-2">{{ quiz.get_difficulty_display }}</div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="timer" id="timer">00:00</div>
+                <small class="text-muted">Time Elapsed</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Indicator -->
+    <div class="progress-indicator" id="progressIndicator"></div>
+    
+    <!-- Questions Container -->
+    <div id="questionsContainer"></div>
+    
+    <!-- Navigation -->
+    <div class="navigation-buttons">
+        <button class="btn btn-outline-light" id="prevBtn" style="display: none;">
+            <i class="bi bi-arrow-left me-2"></i>Previous
+        </button>
+        <button class="btn btn-primary" id="nextBtn">
+            Next<i class="bi bi-arrow-right ms-2"></i>
+        </button>
+        <button class="btn btn-success" id="submitBtn" style="display: none;">
+            <i class="bi bi-check-circle me-2"></i>Submit Quiz
+        </button>
+    </div>
+    
+    <div class="text-center mt-3">
+        <a href="{% url 'quiz_hub' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quiz Hub
+        </a>
+    </div>
+    
+    <!-- Previous Attempts -->
+    {% if previous_attempts %}
+    <div class="previous-attempts">
+        <h5 class="text-white mb-3">
+            <i class="bi bi-clock-history me-2"></i>Your Previous Attempts
+        </h5>
+        {% for attempt in previous_attempts %}
+        <div class="attempt-item">
+            <div>
+                <strong class="text-white">{{ attempt.completed_at|date:"M d, Y H:i" }}</strong>
+                <span class="text-muted ms-2">{{ attempt.get_time_formatted }}</span>
+            </div>
+            <div>
+                <span class="badge {% if attempt.get_percentage >= 80 %}bg-success{% elif attempt.get_percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ attempt.score }}/{{ attempt.total_questions }} ({{ attempt.get_percentage }}%)
+                </span>
+                <a href="{% url 'quiz_results' attempt.id %}" class="btn btn-sm btn-outline-info ms-2">
+                    <i class="bi bi-eye"></i> View
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const questions = {{ questions_json|safe }};
+    const attemptId = {{ attempt.id }};
+    const csrfToken = '{{ csrf_token }}';
+    
+    let currentQuestionIndex = 0;
+    let viewedQuestions = new Set([0]);
+    let userAnswers = {};
+    let startTime = Date.now();
+    let timerInterval;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        renderProgressIndicator();
+        renderQuestion(currentQuestionIndex);
+        startTimer();
+    });
+    
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+    }
+    
+    function renderProgressIndicator() {
+        const indicator = document.getElementById('progressIndicator');
+        indicator.innerHTML = '';
+        questions.forEach((q, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            if (index === currentQuestionIndex) dot.classList.add('current');
+            if (viewedQuestions.has(index)) dot.classList.add('viewed');
+            dot.title = `Question ${index + 1}`;
+            dot.addEventListener('click', () => goToQuestion(index));
+            indicator.appendChild(dot);
+        });
+    }
+    
+    function renderQuestion(index) {
+        const q = questions[index];
+        const container = document.getElementById('questionsContainer');
+        
+        container.innerHTML = `
+            <div class="question-card current">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="text-white">Question ${index + 1} of ${questions.length}</h5>
+                    ${userAnswers[q.id] ? '<span class="badge bg-success">Answered</span>' : '<span class="badge bg-secondary">Not Answered</span>'}
+                </div>
+                <p class="text-white fs-5 mb-4">${q.question}</p>
+                
+                <div class="choices-container">
+                    <div class="choice-option ${userAnswers[q.id] === 'A' ? 'selected' : ''}" data-choice="A">
+                        <div class="choice-label">A</div>
+                        <div class="choice-text">${q.choices.A}</div>
+                    </div>
+                    <div class="choice-option ${userAnswers[q.id] === 'B' ? 'selected' : ''}" data-choice="B">
+                        <div class="choice-label">B</div>
+                        <div class="choice-text">${q.choices.B}</div>
+                    </div>
+                    <div class="choice-option ${userAnswers[q.id] === 'C' ? 'selected' : ''}" data-choice="C">
+                        <div class="choice-label">C</div>
+                        <div class="choice-text">${q.choices.C}</div>
+                    </div>
+                    <div class="choice-option ${userAnswers[q.id] === 'D' ? 'selected' : ''}" data-choice="D">
+                        <div class="choice-label">D</div>
+                        <div class="choice-text">${q.choices.D}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add click handlers for choices
+        document.querySelectorAll('.choice-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected from all
+                document.querySelectorAll('.choice-option').forEach(opt => opt.classList.remove('selected'));
+                // Add selected to clicked
+                this.classList.add('selected');
+                // Save answer
+                userAnswers[q.id] = this.dataset.choice;
+                // Update navigation to show answered status
+                updateNavigationButtons();
+            });
+        });
+        
+        updateNavigationButtons();
+        renderProgressIndicator();
+    }
+    
+    function goToQuestion(index) {
+        if (index >= 0 && index < questions.length) {
+            currentQuestionIndex = index;
+            viewedQuestions.add(index);
+            renderQuestion(index);
+        }
+    }
+    
+    function updateNavigationButtons() {
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        prevBtn.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+        
+        if (currentQuestionIndex === questions.length - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+    
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            viewedQuestions.add(currentQuestionIndex);
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+    
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            viewedQuestions.add(currentQuestionIndex);
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+    
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to submit this quiz? You cannot change your answers after submission.')) {
+            return;
+        }
+        
+        clearInterval(timerInterval);
+        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+        
+        try {
+            const response = await fetch(`/quiz/attempt/${attemptId}/submit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    answers: userAnswers,
+                    time_spent: timeSpent
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`Quiz Completed!\n\nScore: ${data.score}/${data.total} (${data.percentage}%)\nTime: ${data.time_formatted}`);
+                window.location.href = `/quiz/attempt/${attemptId}/results/`;
+            } else {
+                alert('Error submitting quiz: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while submitting the quiz.');
+        }
+    });
+</script>
+
+{% endblock %}
