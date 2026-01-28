@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from courses.models import Enrollment, StudentProgress, Feedback, Quiz, Question, QuizAttempt, QuizAnswer
+from courses.models import Enrollment, StudentProgress, Feedback, Quiz, Question, QuizAttempt, QuizAnswer, Course
 from django.utils import timezone
 from django.db.models import Count, Avg, Q, F, FloatField, ExpressionWrapper
 from django.db import models
@@ -14,7 +14,43 @@ import json
 User = get_user_model()
 
 def home(request):
-    return render(request, 'core/home.html')
+    # Get available courses with Linux - RHCSA and RHCE first
+    linux_course = Course.objects.filter(title__icontains='Linux - RHCSA')
+    other_courses = Course.objects.exclude(title__icontains='Linux - RHCSA')
+    courses = list(linux_course) + list(other_courses)
+    context = {
+        'courses': courses
+    }
+    return render(request, 'core/home.html', context)
+
+def learning_paths(request):
+    """Display all available learning paths with Linux - RHCSA and RHCE first"""
+    linux_course = Course.objects.filter(title__icontains='Linux - RHCSA')
+    other_courses = Course.objects.exclude(title__icontains='Linux - RHCSA')
+    courses = list(linux_course) + list(other_courses)
+    context = {
+        'courses': courses
+    }
+    return render(request, 'core/learning_paths.html', context)
+
+@login_required
+def enroll_course(request, course_id):
+    """Enroll student in a course"""
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if already enrolled
+    enrollment, created = Enrollment.objects.get_or_create(
+        user=request.user,
+        course=course,
+        defaults={'payment_status': 'PENDING'}
+    )
+    
+    if created:
+        messages.success(request, f'Successfully enrolled in {course.title}!')
+    else:
+        messages.info(request, f'You are already enrolled in {course.title}.')
+    
+    return redirect('dashboard')
 
 @login_required
 def dashboard(request):
