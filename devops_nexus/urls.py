@@ -6,8 +6,12 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', core_views.home, name='home'),
+    path('learning-paths/', core_views.learning_paths, name='learning_paths'),
     path('dashboard/', core_views.dashboard, name='dashboard'),
     path('dashboard/submit-feedback/', core_views.submit_feedback, name='submit_feedback'),
+    
+    # Course enrollment
+    path('enroll/<int:course_id>/', core_views.enroll_course, name='enroll_course'),
     
     # Quiz URLs
     path('quiz/', core_views.quiz_hub, name='quiz_hub'),

@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% load course_filters %}
+
+{% block content %}
+<style>
+    .hero-section {
+        padding: 4rem 0 2rem 0;
+        background: radial-gradient(circle at top right, #1e2532 0%, #13151a 60%);
+    }
+    .course-card {
+        background: linear-gradient(135deg, #1e222b 0%, #252a35 100%);
+        border-radius: 12px;
+        border: 1px solid #2d323e;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        border-color: #00d4ff;
+    }
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background: rgba(0, 212, 255, 0.1);
+        color: #00d4ff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    .tech-tag {
+        display: inline-block;
+        background-color: #2d323e;
+        color: #8b949e;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+</style>
+
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="text-white fw-bold mb-3" style="font-size: 3rem;">Learning Paths</h1>
+                <p class="text-muted fs-5 mb-4">
+                    Structured roadmaps designed to take you from beginner to expert. Choose your path and start your DevOps journey today.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            {% if courses %}
+                {% for course in courses %}
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box">
+                            <i class="bi bi-hdd-network"></i>
+                        </div>
+                        <h4 class="text-white mb-2">{{ course.title }}</h4>
+                        <p class="text-muted small mb-3">{{ course.description|truncatewords:20 }}</p>
+                        <div class="mb-3">
+                            <span class="badge bg-primary">{{ course.duration }}</span>
+                        </div>
+                        {% if user.is_authenticated %}
+                            {% if user.enrollments.all|filter_by_course:course %}
+                                <a href="{% url 'dashboard' %}" class="btn btn-success w-100 btn-sm">
+                                    <i class="bi bi-check-circle"></i> Enrolled - Go to Dashboard
+                                </a>
+                            {% else %}
+                                <a href="{% url 'enroll_course' course.id %}" class="btn btn-outline-light w-100 btn-sm">
+                                    <i class="bi bi-bookmark-plus"></i> Enroll Now
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'enroll_course' course.id %}" class="btn btn-outline-light w-100 btn-sm">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="text-center p-5 rounded" style="background-color: #1e222b; border: 1px dashed #2d323e;">
+                        <h5 class="text-white">No courses available</h5>
+                        <p class="text-muted">Please check back later for new learning paths.</p>
+                        <a href="/" class="btn btn-primary">Back to Home</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="py-5" style="background-color: #1a1d24;">
+    <div class="container text-center">
+        <h3 class="text-white mb-3">Ready to Start Your Journey?</h3>
+        <p class="text-muted mb-4">Join thousands of students mastering DevOps skills</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">Get Started Today</a>
+    </div>
+</section>
+{% endblock %}

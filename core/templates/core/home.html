@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load course_filters %}
 
 {% block content %}
 <style>
@@ -185,7 +186,7 @@
                 </p>
                 <div class="d-flex gap-3">
                     <a href="{% url 'register' %}" class="btn btn-brand btn-lg px-4">Start Learning Now</a>
-                    <a href="#" class="btn btn-outline-light btn-lg px-4">View Learning Paths</a>
+                    <a href="{% url 'learning_paths' %}" class="btn btn-outline-light btn-lg px-4">View Learning Paths</a>
                 </div>
             </div>
             <div class="col-lg-5 d-none d-lg-block text-end">
@@ -294,55 +295,204 @@
                 <h2 class="text-white fw-bold">Popular Learning Paths</h2>
                 <p class="text-muted mb-0">Structured roadmaps to take you from beginner to expert.</p>
             </div>
-            <a href="#" class="text-decoration-none text-info">View all paths <i class="bi bi-arrow-right"></i></a>
+            <a href="{% url 'learning_paths' %}" class="text-decoration-none text-info">View all paths <i class="bi bi-arrow-right"></i></a>
         </div>
 
         <div class="row g-4">
-            <div class="col-md-4">
-                <div class="course-card p-4">
-                    <div class="icon-box">
-                        <i class="bi bi-hdd-network"></i>
+            {% if courses %}
+                {% for course in courses|slice:":6" %}
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box">
+                            <i class="bi bi-hdd-network"></i>
+                        </div>
+                        <h4 class="text-white mb-2">{{ course.title }}</h4>
+                        <p class="text-muted small mb-3">{{ course.description|truncatewords:20 }}</p>
+                        <div class="mb-3">
+                            <span class="badge bg-primary">{{ course.duration }}</span>
+                        </div>
+                        {% if user.is_authenticated %}
+                            {% if user.enrollments.all|filter_by_course:course %}
+                                <a href="{% url 'dashboard' %}" class="btn btn-success w-100 btn-sm">
+                                    <i class="bi bi-check-circle"></i> Enrolled - Go to Dashboard
+                                </a>
+                            {% else %}
+                                <a href="{% url 'enroll_course' course.id %}" class="btn btn-outline-light w-100 btn-sm">
+                                    <i class="bi bi-bookmark-plus"></i> Enroll Now
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'enroll_course' course.id %}" class="btn btn-outline-light w-100 btn-sm">
+                                <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                            </a>
+                        {% endif %}
                     </div>
-                    <h4 class="text-white mb-2">DevOps Pre-Requisite</h4>
-                    <p class="text-muted small mb-3">Master the basics of Linux, Networking, and Git before diving into complex tools.</p>
-                    <div class="mb-4">
-                        <span class="tech-tag">Linux</span>
-                        <span class="tech-tag">Git</span>
-                        <span class="tech-tag">Bash</span>
-                    </div>
-                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <!-- Default learning paths if no courses exist -->
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box">
+                            <i class="bi bi-hdd-network"></i>
+                        </div>
+                        <h4 class="text-white mb-2">DevOps Pre-Requisite</h4>
+                        <p class="text-muted small mb-3">Master the basics of Linux, Networking, and Git before diving into complex tools.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">Linux</span>
+                            <span class="tech-tag">Git</span>
+                            <span class="tech-tag">Bash</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
 
-            <div class="col-md-4">
-                <div class="course-card p-4">
-                    <div class="icon-box" style="color: #3771e0; background: rgba(55, 113, 224, 0.1);">
-                        <i class="bi bi-box-seam"></i>
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #3771e0; background: rgba(55, 113, 224, 0.1);">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Docker for Beginners</h4>
+                        <p class="text-muted small mb-3">Learn how to build, ship, and run applications using containers.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">Containers</span>
+                            <span class="tech-tag">Images</span>
+                            <span class="tech-tag">Compose</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
                     </div>
-                    <h4 class="text-white mb-2">Docker for Beginners</h4>
-                    <p class="text-muted small mb-3">Learn how to build, ship, and run applications using containers.</p>
-                    <div class="mb-4">
-                        <span class="tech-tag">Containers</span>
-                        <span class="tech-tag">Images</span>
-                    </div>
-                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
                 </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="course-card p-4">
-                    <div class="icon-box" style="color: #326ce5; background: rgba(50, 108, 229, 0.1);">
-                        <i class="bi bi-diagram-3"></i>
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #326ce5; background: rgba(50, 108, 229, 0.1);">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Kubernetes Administrator (CKA)</h4>
+                        <p class="text-muted small mb-3">Prepare for the CKA exam with deep dives into architecture and troubleshooting.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">K8s</span>
+                            <span class="tech-tag">Cluster</span>
+                            <span class="tech-tag">CKA</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
                     </div>
-                    <h4 class="text-white mb-2">Kubernetes Administrator</h4>
-                    <p class="text-muted small mb-3">Prepare for the CKA exam with deep dives into architecture and troubleshooting.</p>
-                    <div class="mb-4">
-                        <span class="tech-tag">K8s</span>
-                        <span class="tech-tag">Cluster</span>
-                    </div>
-                    <a href="#" class="btn btn-outline-light w-100 btn-sm">Start Path</a>
                 </div>
-            </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #d33833; background: rgba(211, 56, 51, 0.1);">
+                            <i class="bi bi-bricks"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Ansible Automation</h4>
+                        <p class="text-muted small mb-3">Automate infrastructure configuration with Ansible playbooks and roles.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">Playbooks</span>
+                            <span class="tech-tag">Roles</span>
+                            <span class="tech-tag">YAML</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #7b42bc; background: rgba(123, 66, 188, 0.1);">
+                            <i class="bi bi-layers"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Terraform Infrastructure as Code</h4>
+                        <p class="text-muted small mb-3">Master infrastructure automation with Terraform across AWS, Azure, and GCP.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">HCL</span>
+                            <span class="tech-tag">Modules</span>
+                            <span class="tech-tag">State</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #d24939; background: rgba(210, 73, 57, 0.1);">
+                            <i class="bi bi-gear-wide-connected"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Jenkins CI/CD Pipeline</h4>
+                        <p class="text-muted small mb-3">Build automated CI/CD pipelines with Jenkins and pipeline as code.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">Pipeline</span>
+                            <span class="tech-tag">CI/CD</span>
+                            <span class="tech-tag">Groovy</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #ff9900; background: rgba(255, 153, 0, 0.1);">
+                            <i class="bi bi-cloud"></i>
+                        </div>
+                        <h4 class="text-white mb-2">AWS Cloud Practitioner</h4>
+                        <p class="text-muted small mb-3">Get started with Amazon Web Services and prepare for AWS certification.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">EC2</span>
+                            <span class="tech-tag">S3</span>
+                            <span class="tech-tag">VPC</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #ffd43b; background: rgba(255, 212, 59, 0.1);">
+                            <i class="bi bi-filetype-py"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Python for DevOps</h4>
+                        <p class="text-muted small mb-3">Learn Python scripting for DevOps automation and building tools.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">Scripting</span>
+                            <span class="tech-tag">APIs</span>
+                            <span class="tech-tag">Boto3</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="course-card p-4">
+                        <div class="icon-box" style="color: #00d4ff; background: rgba(0, 212, 255, 0.1);">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <h4 class="text-white mb-2">Site Reliability Engineering (SRE)</h4>
+                        <p class="text-muted small mb-3">Master SRE practices including monitoring, incident response, and error budgets.</p>
+                        <div class="mb-4">
+                            <span class="tech-tag">SLO</span>
+                            <span class="tech-tag">Monitoring</span>
+                            <span class="tech-tag">Incident</span>
+                        </div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Enroll
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </section>
