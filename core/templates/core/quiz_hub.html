@@ -1,0 +1,186 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    .topic-card {
+        background: linear-gradient(135deg, #1e222b 0%, #2a2f3a 100%);
+        border: 1px solid #2d323e;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .topic-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0d6efd, #00d4ff);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .topic-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        border-color: #00d4ff;
+    }
+    
+    .topic-card:hover::before {
+        opacity: 1;
+    }
+    
+    .topic-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .difficulty-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0.3rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+    
+    .difficulty-badge.basic {
+        background-color: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        border-color: rgba(40, 167, 69, 0.3);
+    }
+    
+    .difficulty-badge.intermediate {
+        background-color: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border-color: rgba(255, 193, 7, 0.3);
+    }
+    
+    .difficulty-badge.advanced {
+        background-color: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border-color: rgba(220, 53, 69, 0.3);
+    }
+    
+    .difficulty-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px currentColor;
+    }
+    
+    .score-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(0, 212, 255, 0.2);
+        color: #00d4ff;
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .quiz-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #00d4ff 100%);
+        padding: 3rem 0;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="quiz-header">
+        <h1 class="text-white mb-2"><i class="bi bi-trophy-fill me-3"></i>Quiz Hub</h1>
+        <p class="text-white-50 mb-0">Test your DevOps knowledge across 9 different topics</p>
+    </div>
+    
+    <div class="row g-4">
+        {% for topic_name, topic_info in topics_data.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="topic-card">
+                <div class="text-center topic-icon">
+                    {% if topic_info.topic_code == 'LINUX' %}
+                        <i class="bi bi-terminal-fill text-success"></i>
+                    {% elif topic_info.topic_code == 'CLOUD' %}
+                        <i class="bi bi-cloud-fill text-info"></i>
+                    {% elif topic_info.topic_code == 'DOCKER' %}
+                        <i class="bi bi-box-fill text-primary"></i>
+                    {% elif topic_info.topic_code == 'ANSIBLE' %}
+                        <i class="bi bi-gear-fill text-danger"></i>
+                    {% elif topic_info.topic_code == 'TERRAFORM' %}
+                        <i class="bi bi-layers-fill text-warning"></i>
+                    {% elif topic_info.topic_code == 'JENKINS' %}
+                        <i class="bi bi-building text-secondary"></i>
+                    {% elif topic_info.topic_code == 'DEVOPS' %}
+                        <i class="bi bi-infinity text-primary"></i>
+                    {% elif topic_info.topic_code == 'SRE' %}
+                        <i class="bi bi-shield-fill-check text-success"></i>
+                    {% elif topic_info.topic_code == 'PYTHON' %}
+                        <i class="bi bi-code-slash text-warning"></i>
+                    {% endif %}
+                </div>
+                
+                <h4 class="text-white text-center mb-3">{{ topic_name }}</h4>
+                
+                <div class="text-center">
+                    {% if 'BASIC' in topic_info.difficulties %}
+                        {% with diff=topic_info.difficulties.BASIC %}
+                        <a href="{% url 'quiz_detail' diff.quiz.id %}" class="difficulty-badge basic text-decoration-none">
+                            Basic
+                            {% if diff.best_score > 0 %}
+                                <span class="badge bg-success ms-1">{{ diff.best_score }}%</span>
+                            {% endif %}
+                        </a>
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if 'INTERMEDIATE' in topic_info.difficulties %}
+                        {% with diff=topic_info.difficulties.INTERMEDIATE %}
+                        <a href="{% url 'quiz_detail' diff.quiz.id %}" class="difficulty-badge intermediate text-decoration-none">
+                            Intermediate
+                            {% if diff.best_score > 0 %}
+                                <span class="badge bg-warning ms-1">{{ diff.best_score }}%</span>
+                            {% endif %}
+                        </a>
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if 'ADVANCED' in topic_info.difficulties %}
+                        {% with diff=topic_info.difficulties.ADVANCED %}
+                        <a href="{% url 'quiz_detail' diff.quiz.id %}" class="difficulty-badge advanced text-decoration-none">
+                            Advanced
+                            {% if diff.best_score > 0 %}
+                                <span class="badge bg-danger ms-1">{{ diff.best_score }}%</span>
+                            {% endif %}
+                        </a>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle me-2"></i>
+                No quizzes available yet. Check back soon!
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="mt-5 text-center">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+{% endblock %}

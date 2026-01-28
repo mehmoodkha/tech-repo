@@ -36,6 +36,160 @@
         </div>
     </div>
 
+    <!-- Quiz Metrics Section -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 admin-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy-fill text-warning fs-1 mb-2"></i>
+                    <h3 class="text-white mb-1">{{ total_attempts }}</h3>
+                    <p class="text-muted mb-0 small">Total Quiz Attempts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 admin-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up text-success fs-1 mb-2"></i>
+                    <h3 class="text-white mb-1">{{ avg_score }}%</h3>
+                    <p class="text-muted mb-0 small">Average Score</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 admin-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill text-info fs-1 mb-2"></i>
+                    <h3 class="text-white mb-1">{{ students.count }}</h3>
+                    <p class="text-muted mb-0 small">Total Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 admin-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-chat-quote-fill text-warning fs-1 mb-2"></i>
+                    <h3 class="text-white mb-1">{{ latest_feedbacks.count }}</h3>
+                    <p class="text-muted mb-0 small">Total Feedback</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Quiz Performers -->
+    <div class="card border-0 mb-4 admin-card">
+        <div class="card-header admin-card-header">
+            <h5 class="text-white mb-0"><i class="bi bi-award-fill text-warning me-2"></i>Top Quiz Performers</h5>
+        </div>
+        <div class="card-body">
+            {% if top_quiz_performers %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-warning">Rank</th>
+                                <th class="text-warning">Student</th>
+                                <th class="text-warning">Quizzes Taken</th>
+                                <th class="text-warning">Average Score</th>
+                                <th class="text-warning">Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in top_quiz_performers %}
+                            <tr>
+                                <td>
+                                    {% if forloop.counter == 1 %}
+                                        <span class="badge" style="background: gold; color: #000;">🥇 #1</span>
+                                    {% elif forloop.counter == 2 %}
+                                        <span class="badge" style="background: silver; color: #000;">🥈 #2</span>
+                                    {% elif forloop.counter == 3 %}
+                                        <span class="badge" style="background: #cd7f32; color: #fff;">🥉 #3</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">#{{ forloop.counter }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-white">
+                                    {% if student.first_name %}
+                                        {{ student.first_name }} {{ student.last_name }}
+                                    {% else %}
+                                        {{ student.email }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge admin-badge">{{ student.total_quizzes }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-white fw-bold">{{ student.avg_score|floatformat:1 }}%</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px; background-color: #0a0e27;">
+                                        <div class="progress-bar {% if student.avg_score >= 80 %}bg-success{% elif student.avg_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ student.avg_score }}%;">
+                                            {{ student.avg_score|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">No quiz attempts yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Quiz Attempts -->
+    <div class="card border-0 mb-4 admin-card">
+        <div class="card-header admin-card-header">
+            <h5 class="text-white mb-0"><i class="bi bi-clock-history text-warning me-2"></i>Recent Quiz Attempts</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_quiz_attempts %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-warning">Student</th>
+                                <th class="text-warning">Quiz</th>
+                                <th class="text-warning">Score</th>
+                                <th class="text-warning">Time</th>
+                                <th class="text-warning">Completed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in recent_quiz_attempts %}
+                            <tr>
+                                <td class="text-white">
+                                    {% if attempt.user.first_name %}
+                                        {{ attempt.user.first_name }} {{ attempt.user.last_name }}
+                                    {% else %}
+                                        {{ attempt.user.email }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ attempt.quiz.get_topic_display }}</span>
+                                    <span class="badge bg-secondary">{{ attempt.quiz.get_difficulty_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if attempt.get_percentage >= 80 %}bg-success{% elif attempt.get_percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ attempt.score }}/{{ attempt.total_questions }} ({{ attempt.get_percentage }}%)
+                                    </span>
+                                </td>
+                                <td class="text-white">{{ attempt.get_time_formatted }}</td>
+                                <td class="text-muted small">{{ attempt.completed_at|timesince }} ago</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">No recent attempts</p>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Latest Feedback Section -->
     <div class="card border-0 mb-4 admin-card">
         <div class="card-header admin-card-header">

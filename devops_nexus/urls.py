@@ -8,6 +8,14 @@ urlpatterns = [
     path('', core_views.home, name='home'),
     path('dashboard/', core_views.dashboard, name='dashboard'),
     path('dashboard/submit-feedback/', core_views.submit_feedback, name='submit_feedback'),
+    
+    # Quiz URLs
+    path('quiz/', core_views.quiz_hub, name='quiz_hub'),
+    path('quiz/<int:quiz_id>/', core_views.quiz_detail, name='quiz_detail'),
+    path('quiz/attempt/<int:attempt_id>/submit/', core_views.submit_quiz, name='submit_quiz'),
+    path('quiz/attempt/<int:attempt_id>/results/', core_views.quiz_results, name='quiz_results'),
+    
+    # Authentication
     path('register/', user_views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),

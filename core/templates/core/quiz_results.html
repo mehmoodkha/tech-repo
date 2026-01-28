@@ -1,0 +1,196 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    .results-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .results-header {
+        background: linear-gradient(135deg, #1e222b 0%, #2a2f3a 100%);
+        border: 2px solid #00d4ff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem auto;
+        font-size: 2.5rem;
+        font-weight: bold;
+        border: 5px solid;
+    }
+    
+    .score-circle.excellent {
+        background: rgba(40, 167, 69, 0.2);
+        border-color: #28a745;
+        color: #28a745;
+    }
+    
+    .score-circle.good {
+        background: rgba(255, 193, 7, 0.2);
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    .score-circle.poor {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .answer-card {
+        background: linear-gradient(135deg, #1e222b 0%, #2a2f3a 100%);
+        border: 1px solid #2d323e;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .answer-card.correct {
+        border-left: 4px solid #28a745;
+    }
+    
+    .answer-card.incorrect {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .stat-box {
+        background: rgba(13, 110, 253, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+</style>
+
+<div class="container-fluid results-container mt-4">
+    <div class="results-header">
+        <h2 class="text-white mb-3">
+            <i class="bi bi-trophy-fill text-warning me-2"></i>
+            Quiz Results
+        </h2>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="text-muted mb-2">{{ attempt.quiz.get_topic_display }}</h5>
+                <div class="badge bg-secondary">{{ attempt.quiz.get_difficulty_display }}</div>
+            </div>
+            <div class="col-md-4">
+                {% if attempt.get_percentage >= 80 %}
+                    <div class="score-circle excellent">
+                        {{ attempt.get_percentage }}%
+                        <small style="font-size: 1rem;">Excellent!</small>
+                    </div>
+                {% elif attempt.get_percentage >= 60 %}
+                    <div class="score-circle good">
+                        {{ attempt.get_percentage }}%
+                        <small style="font-size: 1rem;">Good Job!</small>
+                    </div>
+                {% else %}
+                    <div class="score-circle poor">
+                        {{ attempt.get_percentage }}%
+                        <small style="font-size: 1rem;">Keep Trying!</small>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box mb-2">
+                    <h4 class="text-white mb-0">{{ attempt.score }}/{{ attempt.total_questions }}</h4>
+                    <small class="text-muted">Correct Answers</small>
+                </div>
+                <div class="stat-box">
+                    <h5 class="text-info mb-0">{{ attempt.get_time_formatted }}</h5>
+                    <small class="text-muted">Time Spent</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h4 class="text-white mb-3">
+        <i class="bi bi-list-check me-2"></i>Question Review
+    </h4>
+    
+    {% for answer in answers %}
+    <div class="answer-card {% if answer.is_correct %}correct{% else %}incorrect{% endif %}">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="text-white">
+                Question {{ answer.question.order }}
+                {% if answer.is_correct %}
+                    <i class="bi bi-check-circle-fill text-success ms-2"></i>
+                {% else %}
+                    <i class="bi bi-x-circle-fill text-danger ms-2"></i>
+                {% endif %}
+            </h6>
+        </div>
+        
+        <p class="text-white mb-3">{{ answer.question.question_text }}</p>
+        
+        <div class="mb-3">
+            <div class="mb-2">
+                <strong class="text-muted">A)</strong> 
+                <span class="text-white ms-2 {% if answer.user_answer == 'A' %}text-info{% endif %}">
+                    {{ answer.question.choice_a }}
+                    {% if answer.user_answer == 'A' %}<i class="bi bi-hand-index-fill text-info ms-2"></i>{% endif %}
+                    {% if answer.question.correct_answer == 'A' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong class="text-muted">B)</strong> 
+                <span class="text-white ms-2 {% if answer.user_answer == 'B' %}text-info{% endif %}">
+                    {{ answer.question.choice_b }}
+                    {% if answer.user_answer == 'B' %}<i class="bi bi-hand-index-fill text-info ms-2"></i>{% endif %}
+                    {% if answer.question.correct_answer == 'B' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong class="text-muted">C)</strong> 
+                <span class="text-white ms-2 {% if answer.user_answer == 'C' %}text-info{% endif %}">
+                    {{ answer.question.choice_c }}
+                    {% if answer.user_answer == 'C' %}<i class="bi bi-hand-index-fill text-info ms-2"></i>{% endif %}
+                    {% if answer.question.correct_answer == 'C' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong class="text-muted">D)</strong> 
+                <span class="text-white ms-2 {% if answer.user_answer == 'D' %}text-info{% endif %}">
+                    {{ answer.question.choice_d }}
+                    {% if answer.user_answer == 'D' %}<i class="bi bi-hand-index-fill text-info ms-2"></i>{% endif %}
+                    {% if answer.question.correct_answer == 'D' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        {% if not answer.is_correct %}
+        <div class="alert alert-danger py-2 mb-0">
+            <strong>Correct Answer:</strong> {{ answer.question.correct_answer }}) {{ answer.question.get_correct_choice_text }}
+        </div>
+        {% endif %}
+        
+        {% if answer.question.answer %}
+        <div class="mt-2">
+            <small class="text-muted"><strong>Explanation:</strong> {{ answer.question.answer }}</small>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div class="text-center mt-4">
+        <a href="{% url 'quiz_detail' attempt.quiz.id %}" class="btn btn-primary me-2">
+            <i class="bi bi-arrow-repeat me-2"></i>Retake Quiz
+        </a>
+        <a href="{% url 'quiz_hub' %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quiz Hub
+        </a>
+    </div>
+</div>
+
+{% endblock %}
