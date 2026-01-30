@@ -93,6 +93,38 @@ def submit_feedback(request):
     
     return redirect('dashboard')
 
+@login_required
+@require_POST
+def update_enrollment_progress(request, enrollment_id):
+    """Update course topic completion progress"""
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id, user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        topic_index = str(data.get('topic_index'))
+        completed = data.get('completed', False)
+        
+        # Initialize course_progress if None
+        if enrollment.course_progress is None:
+            enrollment.course_progress = {}
+        
+        # Update topic completion status
+        enrollment.course_progress[topic_index] = completed
+        enrollment.save()
+        
+        return JsonResponse({
+            'success': True,
+            'completed': enrollment.get_completed_count(),
+            'total': len(enrollment.course.topics) if enrollment.course.topics else 0,
+            'percentage': enrollment.get_completion_percentage()
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    else:
+        messages.error(request, 'Please provide a feedback message.')
+    
+    return redirect('dashboard')
+
 @staff_member_required
 def admin_students(request):
     """Admin view to see all students"""
@@ -227,6 +259,29 @@ def admin_update_progress(request, user_id):
             'completed': progress.get_completed_count(),
             'percentage': progress.get_completion_percentage(),
             'fee_percentage': progress.get_fee_percentage(),
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@staff_member_required
+@require_POST
+def admin_update_enrollment_progress(request, enrollment_id):
+    """API endpoint for admin to update student's course progress"""
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+    
+    try:
+        data = json.loads(request.body)
+        course_progress = data.get('course_progress')
+        
+        if course_progress is not None:
+            enrollment.course_progress = course_progress
+            enrollment.save()
+        
+        return JsonResponse({
+            'success': True,
+            'completed': enrollment.get_completed_count(),
+            'total': len(enrollment.course.topics) if enrollment.course.topics else 0,
+            'percentage': enrollment.get_completion_percentage()
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)

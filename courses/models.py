@@ -6,6 +6,7 @@ class Course(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2, help_text="Price in USD")
     duration = models.CharField(max_length=50, help_text="e.g. '8 Weeks' or '10 Hours'")
+    topics = models.JSONField(default=list, blank=True, help_text="List of course topics/modules")
     
     def __str__(self):
         return self.title
@@ -21,12 +22,27 @@ class Enrollment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     payment_status = models.CharField(max_length=10, choices=PAYMENT_CHOICES, default='PENDING')
     date_enrolled = models.DateTimeField(auto_now_add=True)
+    course_progress = models.JSONField(default=dict, blank=True, help_text="Track topic completion: {topic_index: True/False}")
 
     class Meta:
         unique_together = ('user', 'course')  # Prevent double enrollment
 
     def __str__(self):
         return f"{self.user.email} -> {self.course.title} ({self.payment_status})"
+    
+    def get_completion_percentage(self):
+        """Calculate completion percentage based on completed topics"""
+        if not self.course_progress or not self.course.topics:
+            return 0
+        completed = sum(1 for val in self.course_progress.values() if val)
+        total = len(self.course.topics)
+        return round((completed / total) * 100) if total > 0 else 0
+    
+    def get_completed_count(self):
+        """Get number of completed topics"""
+        if not self.course_progress:
+            return 0
+        return sum(1 for val in self.course_progress.values() if val)
 
 class StudentProgress(models.Model):
     """Track RHCSA/RHCE topic progress for each student"""

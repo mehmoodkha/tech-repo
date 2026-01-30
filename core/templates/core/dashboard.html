@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load course_filters %}
 
 {% block content %}
 <style>
@@ -82,57 +83,83 @@
         </div>
 
         <!-- RHCSA/RHCE Topics Tracker -->
-        <div class="card mb-4 border-0" style="background-color: #1e222b; border: 1px solid #2d323e;">
-            <div class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
-                <h5 class="text-white mb-0"><i class="bi bi-list-check text-success me-2"></i>Linux RHCSA/RHCE Topics</h5>
-                <span class="badge bg-info" id="topicProgress">0/30 Complete</span>
-            </div>
-            <div class="card-body">
-                <div class="progress mb-3" style="height: 20px; background-color: #2d323e;">
-                    <div class="progress-bar bg-success" id="progressBar" role="progressbar" style="width: 0%;">
-                        <span id="progressText" class="fw-bold">0%</span>
-                    </div>
-                </div>
-                <div class="text-center mb-3">
-                    <button class="btn btn-outline-light btn-sm" onclick="toggleTopics()" id="toggleBtn">
-                        <i class="bi bi-chevron-down" id="toggleIcon"></i> Show Topics
-                    </button>
-                </div>
-                <div class="row" id="topicsList" style="display: none;">
-                    <!-- Topics will be dynamically loaded here -->
-                </div>
-            </div>
-        </div>
-
         {% if enrollments %}
             {% for enrollment in enrollments %}
-            <div class="card mb-3 border-0" style="background-color: #1e222b;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="card-title text-white mb-0">{{ enrollment.course.title }}</h5>
-                        
+            <div class="card mb-4 border-0" style="background-color: #1e222b; border: 1px solid #2d323e;">
+                <div class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+                    <h5 class="text-white mb-0">
+                        <i class="bi bi-book text-primary me-2"></i>{{ enrollment.course.title }}
+                    </h5>
+                    <div>
                         {% if enrollment.payment_status == 'PAID' %}
-                            <span class="badge bg-success">Active / Paid</span>
+                            <span class="badge bg-success me-2">Active</span>
                         {% elif enrollment.payment_status == 'PENDING' %}
-                            <span class="badge bg-warning text-dark">Payment Pending</span>
-                        {% else %}
-                            <span class="badge bg-danger">Payment Failed</span>
+                            <span class="badge bg-warning text-dark me-2">Pending Payment</span>
                         {% endif %}
+                        <span class="badge bg-info course-progress-badge" data-enrollment-id="{{ enrollment.id }}">
+                            {{ enrollment.get_completed_count }}/{{ enrollment.course.topics|length }} Complete
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">{{ enrollment.course.description|truncatewords:25 }}</p>
+                    
+                    <div class="progress mb-3" style="height: 20px; background-color: #2d323e;">
+                        <div class="progress-bar bg-success course-progress-bar" 
+                             data-enrollment-id="{{ enrollment.id }}"
+                             role="progressbar" 
+                             style="width: {{ enrollment.get_completion_percentage }}%;">
+                            <span class="fw-bold">{{ enrollment.get_completion_percentage }}%</span>
+                        </div>
                     </div>
                     
-                    <p class="text-muted small mb-2">{{ enrollment.course.duration }} • Price: ₹{{ enrollment.course.price }}</p>
+                    {% if enrollment.course.topics %}
+                    <div class="text-center mb-3">
+                        <button class="btn btn-outline-light btn-sm toggle-topics-btn" 
+                                data-enrollment-id="{{ enrollment.id }}"
+                                onclick="toggleCourseTopics({{ enrollment.id }})">
+                            <i class="bi bi-chevron-down" id="toggle-icon-{{ enrollment.id }}"></i> Show Topics
+                        </button>
+                    </div>
+                    
+                    <div class="row topics-list" id="topics-list-{{ enrollment.id }}" style="display: none;">
+                        {% for topic in enrollment.course.topics %}
+                        <div class="col-md-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input topic-checkbox" 
+                                       type="checkbox" 
+                                       id="topic-{{ enrollment.id }}-{{ forloop.counter0 }}"
+                                       data-enrollment-id="{{ enrollment.id }}"
+                                       data-topic-index="{{ forloop.counter0 }}"
+                                       disabled
+                                       {% if enrollment.course_progress|default_if_none:""  %}
+                                           {% if forloop.counter0|stringformat:"s" in enrollment.course_progress %}
+                                               {% if enrollment.course_progress|get_item:forloop.counter0|stringformat:"s" %}checked{% endif %}
+                                           {% endif %}
+                                       {% endif %}>
+                                <label class="form-check-label text-white small" 
+                                       for="topic-{{ enrollment.id }}-{{ forloop.counter0 }}">
+                                    {{ topic }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                     
                     {% if enrollment.payment_status == 'PAID' %}
-                        <div class="progress" style="height: 8px; background-color: #2d323e;">
-                            <div class="progress-bar bg-info" role="progressbar" style="width: 10%;"></div>
+                        <div class="mt-3">
+                            <a href="#" class="btn btn-sm btn-primary">Continue Learning</a>
                         </div>
-                        <div class="mt-2 text-end text-muted small">10% Complete</div>
-                        <a href="#" class="btn btn-sm btn-primary mt-3">Continue Learning</a>
                     {% else %}
                         <div class="alert alert-warning py-2 mt-3 mb-0 small">
-                            <i class="bi bi-exclamation-triangle"></i> Access restricted. Please complete payment.
+                            <i class="bi bi-exclamation-triangle"></i> Complete payment to access course topics and start learning.
                         </div>
                         <a href="#" class="btn btn-sm btn-success mt-2">Pay Now</a>
+                    {% endif %}
+                    {% else %}
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle"></i> Topics coming soon for this course.
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -247,112 +274,38 @@
 </div>
 
 <script>
-    // --- RHCSA/RHCE TOPICS TRACKER ---
-    const rhcsaTopics = [
-        "Understanding and Using Essential Tools",
-        "File System Navigation (cd, ls, pwd)",
-        "File Management (cp, mv, rm, touch)",
-        "File Permissions and Ownership (chmod, chown)",
-        "Text Processing (grep, sed, awk, cut)",
-        "I/O Redirection and Pipes",
-        "Archive and Compress (tar, gzip, bzip2)",
-        "User and Group Management",
-        "Process Management (ps, top, kill)",
-        "Service Management (systemctl)",
-        "Network Configuration (nmcli, ip)",
-        "Firewall Configuration (firewalld)",
-        "SELinux Basics",
-        "File System Management (fdisk, mkfs)",
-        "Logical Volume Management (LVM)",
-        "Mount and Unmount File Systems",
-        "Swap Space Configuration",
-        "Job Scheduling (cron, at)",
-        "Kernel Boot Parameters",
-        "Package Management (yum, dnf, rpm)",
-        "SSH Configuration and Key Management",
-        "System Logging (journalctl, rsyslog)",
-        "Bash Scripting Basics",
-        "Environment Variables",
-        "Shell History and Aliases",
-        "Find Command and Locate",
-        "Software RAID Configuration",
-        "NFS and Autofs",
-        "Container Management (Podman)",
-        "Performance Tuning and Monitoring"
-    ];
-
-    // Load existing progress from server (prioritize server data over localStorage)
-    let serverProgress = {{ topics_json|safe }};
-    if (!serverProgress || typeof serverProgress !== 'object') {
-        serverProgress = {};
-    }
-
-    function loadTopics() {
-        const topicsList = document.getElementById('topicsList');
-        // Use server data directly (admin updates are reflected here)
-        const savedTopics = serverProgress;
-
-        topicsList.innerHTML = ''; // Clear existing
-
-        rhcsaTopics.forEach((topic, index) => {
-            const isChecked = savedTopics[index] || false;
-            const col = document.createElement('div');
-            col.className = 'col-md-6 mb-2';
-            
-            col.innerHTML = `
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="topic${index}" 
-                           ${isChecked ? 'checked' : ''} disabled>
-                    <label class="form-check-label text-white small" for="topic${index}">
-                        ${topic}
-                    </label>
-                </div>
-            `;
-            topicsList.appendChild(col);
-        });
-
-        updateProgress();
-    }
-
-    function toggleTopics() {
-        const topicsList = document.getElementById('topicsList');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const toggleIcon = document.getElementById('toggleIcon');
+    // --- COURSE TOPICS MANAGEMENT ---
+    function toggleCourseTopics(enrollmentId) {
+        const topicsList = document.getElementById('topics-list-' + enrollmentId);
+        const toggleIcon = document.getElementById('toggle-icon-' + enrollmentId);
+        const toggleBtn = document.querySelector(`[data-enrollment-id="${enrollmentId}"].toggle-topics-btn`);
         
         if (topicsList.style.display === 'none') {
             topicsList.style.display = 'flex';
-            toggleBtn.innerHTML = '<i class="bi bi-chevron-up" id="toggleIcon"></i> Hide Topics';
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-up" id="toggle-icon-' + enrollmentId + '"></i> Hide Topics';
         } else {
             topicsList.style.display = 'none';
-            toggleBtn.innerHTML = '<i class="bi bi-chevron-down" id="toggleIcon"></i> Show Topics';
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-down" id="toggle-icon-' + enrollmentId + '"></i> Show Topics';
         }
     }
 
-    function updateProgress() {
-        const checkboxes = document.querySelectorAll('#topicsList input[type="checkbox"]');
-        let completed = 0;
-        const savedTopics = {};
+    // Topics are read-only for students - only admin can update them
 
-        checkboxes.forEach((checkbox, index) => {
-            if (checkbox.checked) {
-                completed++;
-                savedTopics[index] = true;
-            } else {
-                savedTopics[index] = false;
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
-        });
-
-        const total = rhcsaTopics.length;
-        const percentage = Math.round((completed / total) * 100);
-
-        // Update UI
-        document.getElementById('topicProgress').innerText = `${completed}/${total} Complete`;
-        document.getElementById('progressBar').style.width = percentage + '%';
-        document.getElementById('progressText').innerText = percentage + '%';
+        }
+        return cookieValue;
     }
-
-    // Load topics on page load
-    document.addEventListener('DOMContentLoaded', loadTopics);
 
     // --- GAME CONFIGURATION ---
     const canvas = document.getElementById("gameCanvas");

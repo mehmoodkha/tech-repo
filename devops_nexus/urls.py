@@ -10,8 +10,9 @@ urlpatterns = [
     path('dashboard/', core_views.dashboard, name='dashboard'),
     path('dashboard/submit-feedback/', core_views.submit_feedback, name='submit_feedback'),
     
-    # Course enrollment
+    # Course enrollment and progress
     path('enroll/<int:course_id>/', core_views.enroll_course, name='enroll_course'),
+    path('enrollment/<int:enrollment_id>/update-progress/', core_views.update_enrollment_progress, name='update_enrollment_progress'),
     
     # Quiz URLs
     path('quiz/', core_views.quiz_hub, name='quiz_hub'),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('manage/students/', core_views.admin_students, name='admin_students'),
     path('manage/students/<int:user_id>/', core_views.admin_student_dashboard, name='admin_student_dashboard'),
     path('manage/students/<int:user_id>/update-progress/', core_views.admin_update_progress, name='admin_update_progress'),
+    path('manage/students/enrollment/<int:enrollment_id>/update-progress/', core_views.admin_update_enrollment_progress, name='admin_update_enrollment_progress'),
     
     # Django admin (must be last)
     path('admin/', admin.site.urls),
